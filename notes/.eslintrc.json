@@ -1,0 +1,10 @@
+{
+  "extends": ["plugin:react-hooks/recommended"],
+  "parserOptions": {
+    "sourceType": "module",
+    "ecmaVersion": 2019,
+    "ecmaFeatures": {
+      "jsx": true
+    }
+  }
+}
