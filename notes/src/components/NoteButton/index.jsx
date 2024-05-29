@@ -2,6 +2,7 @@ import ReactMarkdown from "react-markdown";
 import gfm from "remark-gfm";
 import { format } from "date-fns";
 import "./index.css";
+import { memo } from "react";
 
 function NoteButton({ isActive, onNoteActivated, text, filterText, date }) {
   const className = [
@@ -75,4 +76,4 @@ function generateNoteHeader(text, filterText) {
   );
 }
 
-export default NoteButton;
+export default memo(NoteButton);

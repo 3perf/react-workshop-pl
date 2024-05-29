@@ -1,8 +1,10 @@
-import { useState } from "react";
+import { memo, useCallback, useState } from "react";
 import { Button, ButtonGroup } from "@mui/material";
 import FilterInput from "../FilterInput";
 import NoteButton from "../NoteButton";
 import "./index.css";
+
+// const map = new Map()
 
 function NotesList({
   notes,
@@ -12,6 +14,10 @@ function NotesList({
   onDeleteAllRequested,
 }) {
   const [filter, setFilter] = useState("");
+
+  const myFunction = useCallback(() => {
+    () => onNoteActivated(true, "some-string");
+  }, [onNoteActivated]);
 
   return (
     <div className="notes-list" style={{ position: "relative" }}>
@@ -34,13 +40,14 @@ function NotesList({
             return text.toLowerCase().includes(filter.toLowerCase());
           })
           .map(({ id, text, date }) => (
-            <NoteButton
+            <NoteButtonOptimized
               key={id}
-              isActive={activeNoteId === id}
-              onNoteActivated={() => onNoteActivated(id)}
+              id={id}
               text={text}
-              filterText={filter}
               date={date}
+              filter={filter}
+              activeNoteId={activeNoteId}
+              onNoteActivated={onNoteActivated}
             />
           ))}
       </div>
@@ -79,4 +86,68 @@ function NotesList({
   );
 }
 
+// NotesList.hooks = [useCallback, ..., ...] → if the size of the array can change, React will break the app
+
 export default NotesList;
+
+// GIVEN: we want to wrap things with a useCallback or a useMemo, but we can’t do that because we’re inside a loop (this breaks Rules of React)
+// HOW TO SOLVE:
+// 1. Take the part when I want to apply useCallback – and move it into a separate component
+function NoteButtonOptimized({
+  id,
+  text,
+  date,
+  filter,
+  activeNoteId,
+  onNoteActivated,
+}) {
+  // 2. Apply useCallback to the new component
+  const onNoteActivatedMemo = useCallback(
+    () => onNoteActivated(id),
+    [id, onNoteActivated]
+  );
+
+  // 3. (Optional) Wrap the new component with memo
+
+  return (
+    <NoteButton
+      key={id}
+      isActive={activeNoteId === id}
+      onNoteActivated={onNoteActivatedMemo}
+      text={text}
+      filterText={filter}
+      date={date}
+    />
+  );
+}
+
+// Internal React code:
+// NoteButtonOptimized.hooks = [useCallback]
+
+const NoteButtonWithUseCallback = memo(function NoteButtonWithUseCallback({
+  id,
+  text,
+  date,
+  filter,
+  activeNoteId,
+  onNoteActivated,
+}) {
+  const onNoteActivatedMemo = useCallback(
+    () => onNoteActivated(id),
+    [id, onNoteActivated]
+  );
+
+  return (
+    <NoteButton
+      key={id}
+      isActive={activeNoteId === id}
+      onNoteActivated={onNoteActivatedMemo}
+      text={text}
+      filterText={filter}
+      date={date}
+    />
+    // 1. useCallback/useMemo → doesn’t work because we’re inside a loop (and we can’t use them inside a loop)
+    // 2. manual caching (with a hash map) → works (but needs manual cache eviction)
+    // 3. refactor: move into a separate component
+  );
+});
