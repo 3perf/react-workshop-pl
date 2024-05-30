@@ -8,6 +8,11 @@ import { useSelector } from "store";
 import { AppState } from "reducers";
 import { APP_MODE } from "reducers/entityReducers/appReducer";
 import { getAppMode } from "selectors/applicationSelectors";
+import { useStore } from "react-redux";
+
+// Cost of useSelector:
+// 1. The selector runs every time Redux state updates in any way
+// 2. === (or custom equality function)
 
 export const useClickOpenPropPane = () => {
   const showPropertyPane = useShowPropertyPane();
@@ -26,7 +31,12 @@ export const useClickOpenPropPane = () => {
   const isDragging = useSelector(
     (state: AppState) => state.ui.widgetDragResize.isDragging,
   );
+
+  const store = useStore();
   const openPropertyPane = () => {
+    const state = store.getState();
+    const focusedWidget = (state as any).ui.widgetDragResize.focusedWidget;
+
     // ignore click captures if the component was resizing or dragging coz it is handled internally in draggable component
     if (isResizing || isDragging || appMode !== APP_MODE.EDIT) return;
     if (
@@ -39,3 +49,5 @@ export const useClickOpenPropPane = () => {
   };
   return openPropertyPane;
 };
+
+// connect()

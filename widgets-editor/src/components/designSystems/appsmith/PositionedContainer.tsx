@@ -53,3 +53,7 @@ export const PositionedContainer = (props: PositionedContainerProps) => {
 PositionedContainer.padding = WIDGET_PADDING;
 
 export default PositionedContainer;
+
+PositionedContainer.whyDidYouRender = {
+  logOnDifferentValues: true,
+};

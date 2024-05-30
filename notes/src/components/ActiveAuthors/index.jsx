@@ -4,6 +4,17 @@ import avatar1 from "./avatar1.jpg";
 import avatar2 from "./avatar2.jpg";
 import avatar3 from "./avatar3.jpg";
 
+// reselect:
+// const activeThisMonthSelector = createSelector(
+//   (state) => state.users,
+//   (users) =>
+//     users.filter(
+//       (i) =>
+//         new Date(i.lastActiveDate).getFullYear() === 2024 &&
+//         new Date(i.lastActiveDate).getMonth() === 4
+//     )
+// );
+
 function ActiveAuthors() {
   const activeThisMonth = useSelector((state) =>
     state.users.filter(

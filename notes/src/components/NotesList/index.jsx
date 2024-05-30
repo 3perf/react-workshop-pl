@@ -1,8 +1,10 @@
-import { memo, useCallback, useState } from "react";
+import { memo, useCallback, useMemo, useState } from "react";
 import { Button, ButtonGroup } from "@mui/material";
 import FilterInput from "../FilterInput";
 import NoteButton from "../NoteButton";
 import "./index.css";
+import _ from "lodash";
+import { startTransition } from "react";
 
 function NotesList({
   notes,
@@ -11,14 +13,43 @@ function NotesList({
   onNewNotesRequested,
   onDeleteAllRequested,
 }) {
-  const [filter, setFilter] = useState("");
+  // 1. This is the urgent state: it has to update right away
+  const [filterInput, setFilterInput] = useState("");
+  // 2. This is the non-urgent state: it can wait (for 500 ms after after I stop typing)
+  const [filterValue, setFilterValue] = useState("");
 
+  // "" → "f"
+  //    → "ff"
+
+  // const setFilterValueDebounced = useMemo(() => {
+  //   return _.debounce(setFilterValue, 3000);
+  // }, []);
+
+  // debouncing:
+  // +: interactions are cheaper
+  // −: but only if I’m not typing when the timer fires
+  // −: updates happen later
+  // timer duration: chance of slow interactions vs updates happening very late
+
+  // useTransition:
+  // +: interactions are cheaper
+
+  // doWorkFor500Ms();
+
+  console.log("NotesList rendered", filterInput, filterValue);
   return (
     <div className="notes-list" style={{ position: "relative" }}>
       <div className="notes-list__filter">
         <FilterInput
-          filter={filter}
-          onChange={setFilter}
+          filter={filterInput}
+          onChange={(value) => {
+            console.log("onChange called", value);
+            setFilterInput(value);
+            // setFilterValueDebounced(value);
+            startTransition(() => {
+              setFilterValue(value);
+            });
+          }}
           noteCount={Object.keys(notes).length}
         />
       </div>
@@ -27,11 +58,11 @@ function NotesList({
         {Object.values(notes)
           .sort((a, b) => b.date.getTime() - a.date.getTime())
           .filter(({ text }) => {
-            if (!filter) {
+            if (!filterValue) {
               return true;
             }
 
-            return text.toLowerCase().includes(filter.toLowerCase());
+            return text.toLowerCase().includes(filterValue.toLowerCase());
           })
           .map(({ id, text, date }) => (
             <NoteButtonOptimized
@@ -39,7 +70,7 @@ function NotesList({
               id={id}
               text={text}
               date={date}
-              filter={filter}
+              filter={filterValue}
               activeNoteId={activeNoteId}
               onNoteActivated={onNoteActivated}
             />
@@ -112,3 +143,11 @@ const NoteButtonOptimized = memo(function NoteButtonOptimized({
     />
   );
 });
+
+// 1. debouncing/throttling
+// 2. are there keys on the list?
+// 3. virtualization → react-virtuoso or similar
+// 4. make the algorithm cheaper
+// 5. wrap the expensive logic (like generateNoteHeader) with useMemo
+// 6. pagination
+// 7. useTransition from React 18
