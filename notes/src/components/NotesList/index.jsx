@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { memo, useCallback, useState } from "react";
 import { Button, ButtonGroup } from "@mui/material";
 import FilterInput from "../FilterInput";
 import NoteButton from "../NoteButton";
@@ -34,13 +34,14 @@ function NotesList({
             return text.toLowerCase().includes(filter.toLowerCase());
           })
           .map(({ id, text, date }) => (
-            <NoteButton
+            <NoteButtonOptimized
               key={id}
-              isActive={activeNoteId === id}
-              onNoteActivated={() => onNoteActivated(id)}
+              id={id}
               text={text}
-              filterText={filter}
               date={date}
+              filter={filter}
+              activeNoteId={activeNoteId}
+              onNoteActivated={onNoteActivated}
             />
           ))}
       </div>
@@ -80,3 +81,34 @@ function NotesList({
 }
 
 export default NotesList;
+
+// GIVEN: we want to wrap things with a useCallback or a useMemo, but we can’t do that because we’re inside a loop (this breaks Rules of React)
+// HOW TO SOLVE:
+// 1. Take the part when I want to apply useCallback – and move it into a separate component
+const NoteButtonOptimized = memo(function NoteButtonOptimized({
+  id,
+  text,
+  date,
+  filter,
+  activeNoteId,
+  onNoteActivated,
+}) {
+  // 2. Apply useCallback to the new component
+  const onNoteActivatedMemo = useCallback(
+    () => onNoteActivated(id),
+    [id, onNoteActivated]
+  );
+
+  // 3. (Optional) Wrap the new component with memo
+
+  return (
+    <NoteButton
+      key={id}
+      isActive={activeNoteId === id}
+      onNoteActivated={onNoteActivatedMemo}
+      text={text}
+      filterText={filter}
+      date={date}
+    />
+  );
+});
