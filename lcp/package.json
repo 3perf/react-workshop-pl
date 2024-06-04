@@ -1,0 +1,11 @@
+{
+  "name": "lcp",
+  "version": "1.0.0",
+  "scripts": {
+    "start": "serve ."
+  },
+  "devDependencies": {
+    "serve": "^14.2.3"
+  },
+  "packageManager": "yarn@4.2.2"
+}
