@@ -12,22 +12,13 @@ const Container = styled.div`
   gap: 4px;
 `;
 
-const AvatarContainer = styled.div`
-  position: relative;
-  width: 50px;
-  height: 50px;
-  border: 3px solid ${(props) => props.color};
-  border-radius: 50%;
-  overflow: hidden;
-`;
-
 const Overlay = styled.a`
   position: absolute;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
-  background-color: ${(props) => props.color};
+  background-color: var(--color);
   color: #fff;
   font-size: 20px;
   text-align: center;
@@ -41,6 +32,24 @@ const Overlay = styled.a`
     opacity: 1;
   }
 `;
+
+const AvatarContainer = styled.div.attrs((props) => ({
+  style: {
+    "--color": props.color,
+  },
+}))`
+  position: relative;
+  width: 50px;
+  height: 50px;
+  border: 3px solid var(--color);
+  border-radius: 50%;
+  overflow: hidden;
+`;
+
+// split out the dynamic part away from the styled component
+// 1. inline style attribute
+// 2. .attrs() on the component (and, again, inline style attribute)
+// 3. use CSS variables
 
 const Avatar = styled.img`
   width: 100%;
@@ -80,7 +89,7 @@ const App = () => {
   };
 
   return (
-    <div>
+    <div className="h-[100px]">
       <Header>Contributors to priceline/design-system</Header>
       <Button onClick={handleClick}>
         {contributors.length === 0 ? "Show" : "Hide"} contributors
@@ -89,11 +98,7 @@ const App = () => {
         {contributors.map((contributor, index) => (
           <AvatarContainer key={index} color={contributor.color}>
             <Avatar src={contributor.image} />
-            <Overlay
-              href={contributor.link}
-              color={contributor.color}
-              target="_blank"
-            >
+            <Overlay href={contributor.link} target="_blank">
               🔗
             </Overlay>
           </AvatarContainer>

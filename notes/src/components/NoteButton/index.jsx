@@ -2,22 +2,58 @@ import ReactMarkdown from "react-markdown";
 import gfm from "remark-gfm";
 import { format } from "date-fns";
 import "./index.css";
-import { memo, useLayoutEffect, useRef } from "react";
+import { memo, useEffect, useLayoutEffect, useRef, useState } from "react";
+
+// const Button = styled.button`
+//   color: red;
+// `;
 
 function NoteButton({ isActive, onNoteActivated, id, text, filterText, date }) {
   const noteHeader = useRef();
+  const [isOverflowing, setIsOverflowing] = useState(false);
+
+  // 1. render NoteButtons
+  // 2. you’d run 100 useLayoutEffects in a row → they’ll do all the reading (but no writing)
+  // 3. rerender the updated NoteButtons → that will do the writing
 
   useLayoutEffect(() => {
     if (noteHeader.current) {
       if (noteHeader.current.scrollWidth > noteHeader.current.clientWidth) {
-        noteHeader.current.classList.add("notes-list__note-header_overflowing");
+        setIsOverflowing(true);
       } else {
-        noteHeader.current.classList.remove(
-          "notes-list__note-header_overflowing"
-        );
+        setIsOverflowing(false);
       }
     }
+
+    // setButton(Button);
+    // → no DOM writing here
   }, [text]);
+
+  // useLayoutEffect(() => {
+  //   if (noteHeader.current) {
+  //     if (noteHeader.current.scrollWidth > noteHeader.current.clientWidth) {
+  //       requestAnimationFrame(() => {
+  //         noteHeader.current.classList.add(
+  //           "notes-list__note-header_overflowing"
+  //         );
+  //       });
+  //     } else {
+  //       requestAnimationFrame(() => {
+  //         noteHeader.current.classList.remove(
+  //           "notes-list__note-header_overflowing"
+  //         );
+  //       });
+  //     }
+  //   }
+  // }, [text]);
+
+  // 1. always keep the overflow fade-out visible
+  // 2. [replace with a CSS-only solution] replace with CSS container queries?
+  // 3. [replace with a CSS-only solution] text-overflow: ellipsis
+  // 4. [separate writes from reads in time: instead of read → write → read → write → ...,
+  // read read read → write write write, or
+  // write write write → read read read]
+  // or use requestAnimationFrame to move writes to later
 
   const className = [
     "notes-list__button",
@@ -32,7 +68,12 @@ function NoteButton({ isActive, onNoteActivated, id, text, filterText, date }) {
       <span className="notes-list__note-meta">
         {format(date, "d MMM yyyy")}
       </span>
-      <span className="notes-list__note-header" ref={noteHeader}>
+      <span
+        className={`notes-list__note-header ${
+          isOverflowing ? "notes-list__note-header_overflowing" : ""
+        }`}
+        ref={noteHeader}
+      >
         {generateNoteHeader(text, filterText)}
       </span>
     </button>
